@@ -22,6 +22,7 @@ func (p *Pxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			clientIP = strings.Join(prior, ", ") + ", " + clientIP
 		}
 		outReq.Header.Set("X-Forwarded-For", clientIP)
+
 	}
 	// step 2
 	res, err := transport.RoundTrip(outReq)
@@ -49,8 +50,31 @@ func (p *Pxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func tcp() {
+	listen, err := net.Listen("tcp4", "0.0.0.0:9090")
+	if err != nil {
+		panic(err)
+	}
+	defer listen.Close()
+
+	accept, err := listen.Accept()
+	if err != nil {
+		panic(err)
+	}
+
+	bytes := make([]byte, 1024)
+	read, err := accept.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(read)
+	accept.Close()
+}
+
 func main() {
 	fmt.Println("Serve on :8080")
-	http.Handle("/", &Pxy{})
-	http.ListenAndServe("0.0.0.0:8080", nil)
+	//http.Handle("/", &Pxy{})
+	//http.ListenAndServe("0.0.0.0:8080", nil)
+	tcp()
 }
